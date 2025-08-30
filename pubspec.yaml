@@ -1,0 +1,33 @@
+name: ngo
+description: A Flutter application for connecting NGOs, volunteers, and service seekers.
+
+# Use this to prevent publishing to pub.dev (optional)
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  supabase_flutter: ^2.0.0
+  flutter_dotenv: ^5.1.0
+  google_sign_in: ^6.1.0
+  image_picker: ^1.0.4
+  file_picker: ^8.0.0
+  http: ^1.1.0
+  flutter_localizations:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/google.png
