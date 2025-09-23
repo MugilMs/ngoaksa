@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/opportunity_provider.dart';
-import 'widgets/auth_wrapper.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/main_screen.dart';
 import 'utils/colors.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const NGOConnectApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class NGOConnectApp extends StatelessWidget {
+  const NGOConnectApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +28,25 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: AppColors.backgroundColor,
           fontFamily: 'Inter',
         ),
-        home: const AuthWrapper(),
+        home: const SimpleAuthWrapper(),
       ),
+    );
+  }
+}
+
+class SimpleAuthWrapper extends StatelessWidget {
+  const SimpleAuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // For demo purposes, show login screen initially
+        if (!authProvider.isLoggedIn) {
+          return const LoginScreen();
+        }
+        return const MainScreen();
+      },
     );
   }
 }
