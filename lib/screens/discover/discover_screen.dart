@@ -27,9 +27,26 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 
   void _onRefresh() async {
-    await Provider.of<OpportunityProvider>(context, listen: false)
-        .refreshOpportunities();
-    _refreshController.refreshCompleted();
+    try {
+      await Provider.of<OpportunityProvider>(context, listen: false)
+          .refreshOpportunities();
+      _refreshController.refreshCompleted();
+    } catch (e) {
+      print('Error refreshing opportunities: $e');
+      _refreshController.refreshFailed();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unable to refresh opportunities. Please try again.'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override

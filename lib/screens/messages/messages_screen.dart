@@ -33,21 +33,35 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   void _filterConversations(String query) {
-    setState(() {
-      if (query.isEmpty) {
+    try {
+      setState(() {
+        if (query.isEmpty) {
+          _filteredConversations = DummyData.chatConversations;
+        } else {
+          _filteredConversations = DummyData.chatConversations
+              .where((conversation) {
+                try {
+                  return conversation.organizationName
+                      .toLowerCase()
+                      .contains(query.toLowerCase()) ||
+                  conversation.lastMessage
+                      .toLowerCase()
+                      .contains(query.toLowerCase());
+                } catch (e) {
+                  print('Error filtering conversation: $e');
+                  return false;
+                }
+              })
+              .toList();
+        }
+      });
+    } catch (e) {
+      print('Error in _filterConversations: $e');
+      // Fallback to showing all conversations
+      setState(() {
         _filteredConversations = DummyData.chatConversations;
-      } else {
-        _filteredConversations = DummyData.chatConversations
-            .where((conversation) =>
-                conversation.organizationName
-                    .toLowerCase()
-                    .contains(query.toLowerCase()) ||
-                conversation.lastMessage.content
-                    .toLowerCase()
-                    .contains(query.toLowerCase()))
-            .toList();
-      }
-    });
+      });
+    }
   }
 
   @override

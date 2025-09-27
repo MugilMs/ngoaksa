@@ -1,86 +1,269 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/user.dart' as app_user;
 import '../data/dummy_data.dart';
 
 class AuthProvider extends ChangeNotifier {
-  User? _currentUser;
+  app_user.User? _currentUser;
   bool _isLoggedIn = false;
   bool _isLoading = false;
 
-  User? get currentUser => _currentUser;
+  app_user.User? get currentUser => _currentUser;
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
 
   AuthProvider() {
-    _loadAuthState();
+    _loadUserData();
+    _setupAuthListener();
   }
 
-  Future<void> _loadAuthState() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      _isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  void _setupAuthListener() {
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final AuthChangeEvent event = data.event;
+      final Session? session = data.session;
       
-      if (_isLoggedIn) {
-        // Load user data from preferences or use dummy data
-        _currentUser = DummyData.sampleUser;
+      debugPrint('Auth state changed: $event');
+      
+      if (event == AuthChangeEvent.signedIn && session?.user != null) {
+        _handleSignedIn(session!.user);
+      } else if (event == AuthChangeEvent.signedOut) {
+        _handleSignedOut();
       }
+    });
+  }
+
+  Future<void> _handleSignedIn(User user) async {
+    try {
+      // Try to fetch user profile, but don't fail if table doesn't exist
+      Map<String, dynamic>? userProfile;
+      try {
+        userProfile = await Supabase.instance.client
+            .from('users')
+            .select()
+            .eq('id', user.id)
+            .maybeSingle();
+      } catch (e) {
+        debugPrint('Users table not found or error fetching profile: $e');
+        userProfile = null;
+      }
+
+      if (userProfile != null) {
+        // User profile exists
+        final profile = userProfile as Map<String, dynamic>;
+        _currentUser = app_user.User(
+          id: user.id,
+          email: profile['email'] ?? user.email ?? '',
+          fullName: profile['full_name'] ?? 'User',
+          role: app_user.UserRole.values.firstWhere(
+            (role) => role.name == (profile['role'] ?? 'volunteer'),
+            orElse: () => app_user.UserRole.volunteer,
+          ),
+          createdAt: DateTime.tryParse(profile['created_at'] ?? '') ?? DateTime.now(),
+          profileImageUrl: profile['profile_image_url'],
+        );
+      } else {
+        // Create user profile from auth metadata or use defaults
+        final metadata = user.userMetadata;
+        final fullName = metadata?['full_name'] ?? user.email?.split('@')[0] ?? 'New User';
+        final role = metadata?['role'] ?? 'volunteer';
+        
+        // Try to create user profile, but don't fail if table doesn't exist
+        try {
+          await Supabase.instance.client.from('users').insert({
+            'id': user.id,
+            'email': user.email,
+            'full_name': fullName,
+            'role': role,
+            'profile_image_url': DummyData.sampleUser.profileImageUrl,
+          });
+        } catch (e) {
+          debugPrint('Could not create user profile (table may not exist): $e');
+        }
+
+        _currentUser = app_user.User(
+          id: user.id,
+          email: user.email ?? '',
+          fullName: fullName,
+          role: app_user.UserRole.values.firstWhere(
+            (r) => r.name == role,
+            orElse: () => app_user.UserRole.volunteer,
+          ),
+          createdAt: DateTime.now(),
+          profileImageUrl: DummyData.sampleUser.profileImageUrl,
+        );
+      }
+      
+      _isLoggedIn = true;
+      notifyListeners();
     } catch (e) {
-      debugPrint('Error loading auth state: $e');
-    } finally {
-      _isLoading = false;
+      debugPrint('Error handling signed in user: $e');
+      // Even if there's an error, create a basic user profile from auth data
+      _currentUser = app_user.User(
+        id: user.id,
+        email: user.email ?? '',
+        fullName: user.email?.split('@')[0] ?? 'User',
+        role: app_user.UserRole.volunteer,
+        createdAt: DateTime.now(),
+        profileImageUrl: DummyData.sampleUser.profileImageUrl,
+      );
+      _isLoggedIn = true;
       notifyListeners();
     }
   }
 
-  Future<void> _loadUserData() async {
-    // Simulate loading user data for demo
-    await Future.delayed(const Duration(milliseconds: 500));
-    // For demo purposes, we'll keep user logged out initially
-    _isLoggedIn = false;
+  void _handleSignedOut() {
     _currentUser = null;
+    _isLoggedIn = false;
     notifyListeners();
   }
 
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  Future<void> _loadUserData() async {
+    _setLoading(true);
+    
+    try {
+      // Check if user is already logged in with Supabase
+      final session = Supabase.instance.client.auth.currentSession;
+      
+      if (session?.user != null) {
+        // Try to fetch user profile from the users table
+        try {
+          final userProfile = await Supabase.instance.client
+              .from('users')
+              .select()
+              .eq('id', session!.user.id)
+              .maybeSingle();
+
+          if (userProfile != null) {
+            // Create local user object
+            final profile = userProfile as Map<String, dynamic>;
+            _currentUser = app_user.User(
+              id: session.user.id,
+              email: profile['email'] ?? session.user.email ?? '',
+              fullName: profile['full_name'] ?? 'User',
+              role: app_user.UserRole.values.firstWhere(
+                (role) => role.name == (profile['role'] ?? 'volunteer'),
+                orElse: () => app_user.UserRole.volunteer,
+              ),
+              createdAt: DateTime.tryParse(profile['created_at'] ?? '') ?? DateTime.now(),
+              profileImageUrl: profile['profile_image_url'],
+            );
+          } else {
+            // Create basic user from session data
+            _currentUser = app_user.User(
+              id: session.user.id,
+              email: session.user.email ?? '',
+              fullName: session.user.email?.split('@')[0] ?? 'User',
+              role: app_user.UserRole.volunteer,
+              createdAt: DateTime.now(),
+              profileImageUrl: DummyData.sampleUser.profileImageUrl,
+            );
+          }
+        } catch (e) {
+          debugPrint('Error fetching user profile, using session data: $e');
+          // Create basic user from session data
+          _currentUser = app_user.User(
+            id: session!.user.id,
+            email: session.user.email ?? '',
+            fullName: session.user.email?.split('@')[0] ?? 'User',
+            role: app_user.UserRole.volunteer,
+            createdAt: DateTime.now(),
+            profileImageUrl: DummyData.sampleUser.profileImageUrl,
+          );
+        }
+        
+        _isLoggedIn = true;
+      } else {
+        _isLoggedIn = false;
+        _currentUser = null;
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      // Ensure we're in a safe state even if loading fails
+      _isLoggedIn = false;
+      _currentUser = null;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   Future<void> _saveUserData() async {
-    // Simulate saving user data for demo
     await Future.delayed(const Duration(milliseconds: 100));
     debugPrint('User data saved (demo mode)');
   }
 
   Future<bool> signIn(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
-
+    _setLoading(true);
+    
     try {
-      // Simulate API call delay
-      await Future.delayed(const Duration(seconds: 1));
+      // Sign in with Supabase Auth
+      final response = await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
 
-      // For demo purposes, accept any email/password
-      if (email.isNotEmpty && password.isNotEmpty) {
-        _currentUser = DummyData.sampleUser.copyWith(email: email);
+      if (response.user != null) {
+        // Try to fetch user profile from the users table
+        try {
+          final userProfile = await Supabase.instance.client
+              .from('users')
+              .select()
+              .eq('id', response.user!.id)
+              .maybeSingle();
+
+          if (userProfile != null) {
+            // Create local user object
+            final profile = userProfile as Map<String, dynamic>;
+            _currentUser = app_user.User(
+              id: response.user!.id,
+              email: profile['email'] ?? response.user!.email ?? '',
+              fullName: profile['full_name'] ?? 'User',
+              role: app_user.UserRole.values.firstWhere(
+                (role) => role.name == (profile['role'] ?? 'volunteer'),
+                orElse: () => app_user.UserRole.volunteer,
+              ),
+              createdAt: DateTime.tryParse(profile['created_at'] ?? '') ?? DateTime.now(),
+              profileImageUrl: profile['profile_image_url'],
+            );
+          } else {
+            // Create basic user from auth response
+            _currentUser = app_user.User(
+              id: response.user!.id,
+              email: response.user!.email ?? '',
+              fullName: response.user!.email?.split('@')[0] ?? 'User',
+              role: app_user.UserRole.volunteer,
+              createdAt: DateTime.now(),
+              profileImageUrl: DummyData.sampleUser.profileImageUrl,
+            );
+          }
+        } catch (e) {
+          debugPrint('Error fetching user profile, using auth data: $e');
+          // Create basic user from auth response
+          _currentUser = app_user.User(
+            id: response.user!.id,
+            email: response.user!.email ?? '',
+            fullName: response.user!.email?.split('@')[0] ?? 'User',
+            role: app_user.UserRole.volunteer,
+            createdAt: DateTime.now(),
+            profileImageUrl: DummyData.sampleUser.profileImageUrl,
+          );
+        }
+        
         _isLoggedIn = true;
-        
-        // Save auth state
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('isLoggedIn', true);
-        await prefs.setString('userEmail', email);
-        
-        _isLoading = false;
-        notifyListeners();
+        await _saveUserData();
         return true;
       }
       
-      _isLoading = false;
-      notifyListeners();
       return false;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
       debugPrint('Sign in error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -88,106 +271,136 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
     required String fullName,
-    required UserRole role,
+    required app_user.UserRole role,
   }) async {
-    _isLoading = true;
-    notifyListeners();
+    _setLoading(true);
 
     try {
-      // Simulate API call delay
-      await Future.delayed(const Duration(seconds: 1));
-
-      // Create new user
-      _currentUser = User(
-        id: 'user_${DateTime.now().millisecondsSinceEpoch}',
+      // Sign up with Supabase Auth including metadata
+      final response = await Supabase.instance.client.auth.signUp(
         email: email,
-        fullName: fullName,
-        role: role,
-        createdAt: DateTime.now(),
+        password: password,
+        data: {
+          'full_name': fullName,
+          'role': role.name,
+        },
       );
-      _isLoggedIn = true;
+
+      if (response.user != null) {
+        // Check if email confirmation is required
+        if (response.session == null) {
+          // Email confirmation required
+          debugPrint('Email confirmation required for: $email');
+          return true; // Return true but don't set as logged in yet
+        }
+
+        // If we have a session, try to create/update the user profile
+        try {
+          await Supabase.instance.client.from('users').upsert({
+            'id': response.user!.id,
+            'email': email,
+            'full_name': fullName,
+            'role': role.name,
+            'profile_image_url': DummyData.sampleUser.profileImageUrl,
+          });
+        } catch (profileError) {
+          debugPrint('Profile creation error (will retry): $profileError');
+          // Don't fail registration if profile creation fails - it might be handled by trigger
+        }
+
+        // Create local user object
+        _currentUser = app_user.User(
+          id: response.user!.id,
+          email: email,
+          fullName: fullName,
+          role: role,
+          createdAt: DateTime.now(),
+          profileImageUrl: DummyData.sampleUser.profileImageUrl,
+        );
+        
+        _isLoggedIn = true;
+        await _saveUserData();
+        return true;
+      }
       
-      // Save auth state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userEmail', email);
-      
-      _isLoading = false;
-      notifyListeners();
-      return true;
+      return false;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
       debugPrint('Sign up error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<bool> signInWithGoogle() async {
-    _isLoading = true;
-    notifyListeners();
-
+    _setLoading(true);
+    
     try {
-      // Simulate Google sign in delay
-      await Future.delayed(const Duration(seconds: 2));
-
-      // For demo purposes, create a Google user
-      _currentUser = DummyData.sampleUser.copyWith(
-        email: 'google.user@gmail.com',
+      // Simulate Google sign in
+      await Future.delayed(const Duration(seconds: 1));
+      
+      _currentUser = app_user.User(
+        id: 'google_${DateTime.now().millisecondsSinceEpoch}',
+        email: 'user@gmail.com',
         fullName: 'Google User',
+        role: app_user.UserRole.volunteer,
+        createdAt: DateTime.now(),
+        profileImageUrl: DummyData.sampleUser.profileImageUrl,
       );
+      
       _isLoggedIn = true;
-      
-      // Save auth state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
-      await prefs.setString('userEmail', 'google.user@gmail.com');
-      
-      _isLoading = false;
-      notifyListeners();
+      await _saveUserData();
       return true;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
       debugPrint('Google sign in error: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   Future<void> signOut() async {
-    _isLoading = true;
-    notifyListeners();
-
+    _setLoading(true);
+    
     try {
-      // Clear auth state
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear();
-      
+      await Supabase.instance.client.auth.signOut();
       _currentUser = null;
       _isLoggedIn = false;
+      await _saveUserData();
     } catch (e) {
       debugPrint('Sign out error: $e');
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      _setLoading(false);
     }
   }
 
-  Future<void> updateProfile({
+  Future<bool> updateProfile({
     String? fullName,
     String? profileImageUrl,
   }) async {
-    if (_currentUser == null) return;
-
+    if (_currentUser == null) return false;
+    
+    _setLoading(true);
+    
     try {
-      _currentUser = _currentUser!.copyWith(
+      await Future.delayed(const Duration(seconds: 1));
+      
+      _currentUser = app_user.User(
+        id: _currentUser!.id,
+        email: _currentUser!.email,
         fullName: fullName ?? _currentUser!.fullName,
         profileImageUrl: profileImageUrl ?? _currentUser!.profileImageUrl,
-        updatedAt: DateTime.now(),
+        role: _currentUser!.role,
+        createdAt: _currentUser!.createdAt,
       );
-      notifyListeners();
+      
+      await _saveUserData();
+      return true;
     } catch (e) {
       debugPrint('Update profile error: $e');
+      return false;
+    } finally {
+      _setLoading(false);
     }
   }
 }

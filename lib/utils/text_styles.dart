@@ -31,6 +31,13 @@ class AppTextStyles {
     height: 1.4,
   );
   
+  static const TextStyle heading5 = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    height: 1.4,
+  );
+  
   // Body Text
   static const TextStyle body = TextStyle(
     fontSize: 16,
@@ -130,7 +137,7 @@ class AppTextStyles {
   static const TextStyle link = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
-    color: AppColors.primaryBlue,
+    color: AppColors.primaryGreen,
     decoration: TextDecoration.underline,
   );
 

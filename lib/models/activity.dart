@@ -10,6 +10,7 @@ class Activity {
   final String? description;
   final String? imageUrl;
   final String opportunityId;
+  final int hoursLogged;
 
   Activity({
     required this.id,
@@ -23,6 +24,7 @@ class Activity {
     this.description,
     this.imageUrl,
     required this.opportunityId,
+    this.hoursLogged = 0,
   });
 
   factory Activity.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class Activity {
       description: json['description'],
       imageUrl: json['image_url'],
       opportunityId: json['opportunity_id'],
+      hoursLogged: json['hours_logged'] ?? 0,
     );
   }
 
@@ -56,6 +59,7 @@ class Activity {
       'description': description,
       'image_url': imageUrl,
       'opportunity_id': opportunityId,
+      'hours_logged': hoursLogged,
     };
   }
 
@@ -77,6 +81,7 @@ class Activity {
 enum ActivityStatus {
   confirmed,
   pending,
+  upcoming,
   completed,
   cancelled,
 }
@@ -88,6 +93,8 @@ extension ActivityStatusExtension on ActivityStatus {
         return 'Confirmed';
       case ActivityStatus.pending:
         return 'Pending';
+      case ActivityStatus.upcoming:
+        return 'Upcoming';
       case ActivityStatus.completed:
         return 'Completed';
       case ActivityStatus.cancelled:

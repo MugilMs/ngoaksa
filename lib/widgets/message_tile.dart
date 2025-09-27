@@ -58,9 +58,9 @@ class MessageTile extends StatelessWidget {
         ),
       ),
       child: ClipOval(
-        child: conversation.avatarUrl != null
+        child: conversation.organizationAvatar.isNotEmpty
             ? CachedNetworkImage(
-                imageUrl: conversation.avatarUrl!,
+                imageUrl: conversation.organizationAvatar,
                 fit: BoxFit.cover,
                 placeholder: (context, url) => Container(
                   color: AppColors.inputBackground,
@@ -96,7 +96,7 @@ class MessageTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          conversation.organization,
+          conversation.organizationName,
           style: AppTextStyles.heading4,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

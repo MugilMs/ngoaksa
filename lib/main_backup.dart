@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/onboarding_screen.dart';
+import 'package:image_picker/image_picker.dart';
+import 'services/auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,10 +11,10 @@ Future<void> main() async {
   try {
     // Try to load .env file
     await dotenv.load(fileName: '.env');
-    print('.env file loaded successfully');
+    debugPrint('.env file loaded successfully');
   } catch (e) {
-    print('Error loading .env file: $e');
-    print('Make sure .env file exists in the project root');
+    debugPrint('Error loading .env file: $e');
+    debugPrint('Make sure .env file exists in the project root');
   }
 
   // Initialize Supabase safely
@@ -460,12 +461,14 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error signing in: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing in: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -506,12 +509,14 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error signing in with Google: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing in with Google: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } finally {
       setState(() {
         _isLoading = false;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/auth_service.dart';
-import 'profile_info_screen1.dart';
+import '../utils/colors.dart';
+import 'admin_page.dart';
+import 'student_page.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
@@ -14,43 +14,27 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   String? _selectedRole;
   bool _isLoading = false;
 
-  Future<void> _saveUserRole() async {
+  void _navigateToRolePage() {
     if (_selectedRole == null) return;
-    
-    final user = AuthService.currentUser;
-    if (user == null) return;
     
     setState(() {
       _isLoading = true;
     });
     
-    try {
-      await Supabase.instance.client
-          .from('user_profiles')
-          .upsert({
-            'id': user.id,
-            'role': _selectedRole,
-            'updated_at': DateTime.now().toIso8601String(),
-          });
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ProfileInfoScreen1(),
-        ),
-      );
-    } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving role: $error'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+    // Navigate based on selected role
+    Widget targetPage;
+    if (_selectedRole == 'admin') {
+      targetPage = const AdminPage();
+    } else {
+      targetPage = const StudentPage();
     }
+    
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => targetPage,
+      ),
+    );
   }
 
   @override
@@ -72,16 +56,18 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         ),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      body: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Center(
               child: Text(
                 'Choose Your Role',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: Colors.black,
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                 ),
@@ -92,7 +78,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               child: Text(
                 'Select the role that best describes you.',
                 style: TextStyle(
-                  color: Color(0xFF9EB7A8),
+                  color: Colors.grey,
                 ),
               ),
             ),
@@ -101,32 +87,25 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               child: ListView(
                 children: [
                   _buildRoleCard(
-                    icon: Icons.business,
-                    title: 'NGO Administrator',
+                    icon: Icons.admin_panel_settings,
+                    title: 'Admin',
                     description:
-                        'Manage your organization, post opportunities, and connect with volunteers.',
-                    value: 'ngo',
+                        'Manage events, post opportunities, and oversee activities.',
+                    value: 'admin',
                   ),
                   const SizedBox(height: 16),
                   _buildRoleCard(
-                    icon: Icons.volunteer_activism,
-                    title: 'Volunteer',
+                    icon: Icons.school,
+                    title: 'Student',
                     description:
-                        'Find and apply for opportunities that match your skills and interests.',
-                    value: 'volunteer',
-                  ),
-                  const SizedBox(height: 16),
-                  _buildRoleCard(
-                    icon: Icons.support_agent,
-                    title: 'Service Seeker',
-                    description:
-                        'Request assistance from NGOs and volunteers for specific needs.',
-                    value: 'service_seeker',
+                        'Discover and join events that match your interests.',
+                    value: 'student',
                   ),
                 ],
               ),
             ),
           ],
+        ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -134,12 +113,14 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
         child: SizedBox(
           height: 56,
           child: ElevatedButton(
-            onPressed: _selectedRole != null && !_isLoading ? _saveUserRole : null,
+            onPressed: _selectedRole != null && !_isLoading ? _navigateToRolePage : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF38E07B),
+              backgroundColor: const Color.fromRGBO(113, 221, 133, 1.0),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: BorderRadius.circular(12),
               ),
+              elevation: 0,
             ),
             child: _isLoading
                 ? const CircularProgressIndicator(
@@ -167,15 +148,16 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     required String value,
   }) {
     return Card(
-      color: const Color(0xFF1C2620),
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
           color: _selectedRole == value
-              ? const Color(0xFF38E07B)
-              : const Color(0xFF374A3F),
+              ? const Color.fromRGBO(113, 221, 133, 1.0)
+              : Colors.grey.shade300,
         ),
       ),
+      elevation: 2,
       child: RadioListTile(
         value: value,
         groupValue: _selectedRole,
@@ -184,25 +166,25 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
             _selectedRole = value;
           });
         },
-        activeColor: const Color(0xFF38E07B),
+        activeColor: const Color.fromRGBO(113, 221, 133, 1.0),
         title: Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
         ),
         subtitle: Text(
           description,
           style: const TextStyle(
-            color: Color(0xFF9EB7A8),
+            color: Colors.grey,
           ),
         ),
         secondary: Icon(
           icon,
           color: _selectedRole == value
-              ? const Color(0xFF38E07B)
-              : Colors.white,
+              ? const Color.fromRGBO(113, 221, 133, 1.0)
+              : Colors.grey,
         ),
       ),
     );

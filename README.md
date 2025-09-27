@@ -154,9 +154,43 @@ The app includes:
 - **Animation Utilities**: Reusable animation helpers
 - **Debug Helpers**: Comprehensive logging and error handling
 
+## 🗄️ Database Integration
+
+### Supabase Setup
+The app is now integrated with Supabase for backend services:
+
+1. **Database Tables**: 
+   - `users` - User profiles and authentication
+   - `activities` - User volunteer activities
+   - `events` - Admin-created events
+   - `conversations` - Chat conversations
+   - `messages` - Chat messages
+   - `opportunities` - Volunteer opportunities
+   - `event_participants` - Event participation tracking
+
+2. **Setup Instructions**:
+   ```bash
+   # 1. Create a Supabase project at https://supabase.com
+   # 2. Run the SQL schema in supabase_schema.sql
+   # 3. Update the credentials in lib/services/supabase_service.dart
+   ```
+
+3. **Features**:
+   - Real-time event creation by admins
+   - Event participation tracking
+   - Chat messaging system
+   - Activity logging with Supabase sync
+
+### Current Database Features
+- ✅ Supabase configuration and service
+- ✅ Admin event creation with database sync
+- ✅ Student event viewing from database
+- ✅ Activities page with dummy data
+- ✅ Messages page with enhanced chat data
+- ✅ Back navigation on auth pages
+
 ## 📈 Future Enhancements
 
-- Real backend integration (Supabase/Firebase)
 - Advanced filtering and search
 - Geolocation services
 - Push notifications

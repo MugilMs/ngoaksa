@@ -13,20 +13,29 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+    
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildHeader(context),
-              _buildProfileInfo(context),
-              const SizedBox(height: 24),
-              _buildStats(context),
-              const SizedBox(height: 24),
-              _buildMenuOptions(context),
-              const SizedBox(height: 100), // Bottom padding for nav bar
-            ],
+          physics: const BouncingScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: screenHeight - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+            ),
+            child: Column(
+              children: [
+                _buildHeader(context),
+                _buildProfileInfo(context),
+                const SizedBox(height: 24),
+                _buildStats(context),
+                const SizedBox(height: 24),
+                _buildMenuOptions(context),
+                SizedBox(height: bottomPadding + 80), // Dynamic bottom padding
+              ],
+            ),
           ),
         ),
       ),
@@ -172,11 +181,11 @@ class ProfileScreen extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.cardBackground,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: AppColors.shadowColor,
                 blurRadius: 8,
-                offset: const Offset(0, 4),
+                offset: Offset(0, 4),
               ),
             ],
           ),
@@ -185,7 +194,7 @@ class ProfileScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
+                  const Text(
                     'About Me',
                     style: AppTextStyles.heading4,
                   ),
@@ -209,7 +218,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               if (user.skills?.isNotEmpty == true) ...[
-                Text(
+                const Text(
                   'Skills',
                   style: AppTextStyles.heading5,
                 ),
@@ -252,18 +261,18 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'My Impact',
             style: AppTextStyles.heading4,
           ),
@@ -349,11 +358,11 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadowColor,
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -367,7 +376,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildDivider(),
           _buildMenuItem(
-            icon: Icons.notifications_outline,
+            icon: Icons.notifications_outlined,
             title: 'Notifications',
             subtitle: 'Manage your notification preferences',
             onTap: () => _showNotificationSettings(context),
@@ -429,7 +438,7 @@ class ProfileScreen extends StatelessWidget {
         subtitle,
         style: AppTextStyles.captionSmall,
       ),
-      trailing: Icon(
+      trailing: const Icon(
         Icons.chevron_right,
         color: AppColors.textTertiary,
       ),
@@ -457,7 +466,7 @@ class ProfileScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            const Text(
               'Profile Picture',
               style: AppTextStyles.heading4,
             ),
@@ -467,7 +476,7 @@ class ProfileScreen extends StatelessWidget {
                 Icons.camera_alt,
                 color: AppColors.primaryGreen,
               ),
-              title: Text(
+              title: const Text(
                 'Take Photo',
                 style: AppTextStyles.bodyMedium,
               ),
@@ -476,7 +485,7 @@ class ProfileScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Camera feature coming soon!'),
-                    backgroundColor: AppColors.warningYellow,
+                    backgroundColor: AppColors.warningOrange,
                   ),
                 );
               },
@@ -486,15 +495,15 @@ class ProfileScreen extends StatelessWidget {
                 Icons.photo_library,
                 color: AppColors.primaryGreen,
               ),
-              title: Text(
+              title: const Text(
                 'Choose from Gallery',
                 style: AppTextStyles.bodyMedium,
               ),
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Gallery feature coming soon!'),
+                  SnackBar(
+                    content: const Text('Gallery feature coming soon!'),
                     backgroundColor: AppColors.warningYellow,
                   ),
                 );
@@ -535,7 +544,7 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
-        title: Text(
+        title: const Text(
           'Edit Profile',
           style: AppTextStyles.heading4,
         ),
@@ -573,7 +582,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: AppTextStyles.link,
             ),
@@ -591,7 +600,7 @@ class ProfileScreen extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
             ),
-            child: Text(
+            child: const Text(
               'Save',
               style: AppTextStyles.buttonSmall,
             ),
@@ -614,7 +623,7 @@ class ProfileScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Settings',
               style: AppTextStyles.heading4,
             ),
@@ -624,7 +633,7 @@ class ProfileScreen extends StatelessWidget {
                 Icons.dark_mode,
                 color: AppColors.primaryGreen,
               ),
-              title: Text(
+              title: const Text(
                 'Dark Mode',
                 style: AppTextStyles.bodyMedium,
               ),
@@ -632,8 +641,8 @@ class ProfileScreen extends StatelessWidget {
                 value: true,
                 onChanged: (value) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Theme switching coming soon!'),
+                    SnackBar(
+                      content: const Text('Theme switching coming soon!'),
                       backgroundColor: AppColors.warningYellow,
                     ),
                   );
@@ -646,19 +655,19 @@ class ProfileScreen extends StatelessWidget {
                 Icons.language,
                 color: AppColors.primaryGreen,
               ),
-              title: Text(
+              title: const Text(
                 'Language',
                 style: AppTextStyles.bodyMedium,
               ),
-              subtitle: Text(
+              subtitle: const Text(
                 'English',
                 style: AppTextStyles.captionSmall,
               ),
               onTap: () {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Language selection coming soon!'),
+                  SnackBar(
+                    content: const Text('Language selection coming soon!'),
                     backgroundColor: AppColors.warningYellow,
                   ),
                 );
@@ -672,8 +681,8 @@ class ProfileScreen extends StatelessWidget {
 
   void _showNotificationSettings(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Notification settings coming soon!'),
+      SnackBar(
+        content: const Text('Notification settings coming soon!'),
         backgroundColor: AppColors.warningYellow,
       ),
     );
@@ -681,8 +690,8 @@ class ProfileScreen extends StatelessWidget {
 
   void _showPrivacySettings(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Privacy settings coming soon!'),
+      SnackBar(
+        content: const Text('Privacy settings coming soon!'),
         backgroundColor: AppColors.warningYellow,
       ),
     );
@@ -690,8 +699,8 @@ class ProfileScreen extends StatelessWidget {
 
   void _showHelpSupport(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Help & Support coming soon!'),
+      SnackBar(
+        content: const Text('Help & Support coming soon!'),
         backgroundColor: AppColors.warningYellow,
       ),
     );
@@ -702,11 +711,11 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
-        title: Text(
+        title: const Text(
           'About NGO Connect',
           style: AppTextStyles.heading4,
         ),
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -714,12 +723,12 @@ class ProfileScreen extends StatelessWidget {
               'Version 1.0.0',
               style: AppTextStyles.bodyMedium,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               'Connecting volunteers with meaningful opportunities to make a difference in their communities.',
               style: AppTextStyles.bodySecondary,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               '© 2024 NGO Connect. All rights reserved.',
               style: AppTextStyles.captionSmall,
@@ -729,7 +738,7 @@ class ProfileScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
+            child: const Text(
               'Close',
               style: AppTextStyles.link,
             ),
@@ -744,26 +753,42 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
-        title: Text(
+        title: const Text(
           'Sign Out',
           style: AppTextStyles.heading4,
         ),
-        content: Text(
+        content: const Text(
           'Are you sure you want to sign out?',
           style: AppTextStyles.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(
+            child: const Text(
               'Cancel',
               style: AppTextStyles.link,
             ),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Provider.of<AuthProvider>(context, listen: false).signOut();
+            onPressed: () async {
+              try {
+                Navigator.pop(context);
+                await Provider.of<AuthProvider>(context, listen: false).signOut();
+              } catch (e) {
+                debugPrint('Error signing out: $e');
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Error signing out. Please try again.'),
+                      backgroundColor: AppColors.emergencyRed,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                }
+              }
             },
             child: Text(
               'Sign Out',

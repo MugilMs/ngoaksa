@@ -265,9 +265,9 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
             activity.title,
             style: AppTextStyles.heading4,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            activity.description,
+            activity.description ?? '',
             style: AppTextStyles.bodySecondary,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -401,6 +401,7 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
     switch (status) {
       case ActivityStatus.pending:
         return AppColors.warningYellow;
+      case ActivityStatus.confirmed:
       case ActivityStatus.upcoming:
         return AppColors.primaryGreen;
       case ActivityStatus.completed:
@@ -479,46 +480,78 @@ class _ActivitiesScreenState extends State<ActivitiesScreen>
   }
 
   void _cancelActivity(Activity activity) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.cardBackground,
-        title: Text(
-          'Cancel Activity',
-          style: AppTextStyles.heading4,
-        ),
-        content: Text(
-          'Are you sure you want to cancel "${activity.title}"?',
-          style: AppTextStyles.bodyMedium,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Keep',
-              style: AppTextStyles.link,
-            ),
+    try {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: AppColors.cardBackground,
+          title: Text(
+            'Cancel Activity',
+            style: AppTextStyles.heading4,
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${activity.title} cancelled'),
-                  backgroundColor: AppColors.emergencyRed,
-                ),
-              );
-            },
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.link.copyWith(
-                color: AppColors.emergencyRed,
+          content: Text(
+            'Are you sure you want to cancel "${activity.title}"?',
+            style: AppTextStyles.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                try {
+                  Navigator.pop(context);
+                } catch (e) {
+                  print('Error closing dialog: $e');
+                }
+              },
+              child: Text(
+                'Keep',
+                style: AppTextStyles.link,
               ),
             ),
+            TextButton(
+              onPressed: () {
+                try {
+                  Navigator.pop(context);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${activity.title} cancelled'),
+                        backgroundColor: AppColors.emergencyRed,
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print('Error cancelling activity: $e');
+                }
+              },
+              child: Text(
+                'Cancel',
+                style: AppTextStyles.link.copyWith(
+                  color: AppColors.emergencyRed,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      print('Error showing cancel dialog: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unable to cancel activity. Please try again.'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
   void _markAsCompleted(Activity activity) {

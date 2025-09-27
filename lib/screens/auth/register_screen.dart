@@ -35,33 +35,105 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
-    
-    if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please accept the terms and conditions'),
-          backgroundColor: AppColors.emergencyRed,
-        ),
-      );
-      return;
-    }
+    try {
+      if (!_formKey.currentState!.validate()) return;
+      
+      if (!_acceptTerms) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Please accept the terms and conditions'),
+              backgroundColor: AppColors.emergencyRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      }
 
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.signUp(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-      fullName: _nameController.text.trim(),
-      role: _selectedRole,
-    );
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      bool success = false;
+      String? errorMessage;
+      
+      try {
+        success = await authProvider.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          fullName: _nameController.text.trim(),
+          role: _selectedRole,
+        );
+      } catch (e) {
+        print('Registration error: $e');
+        success = false;
+        
+        // Extract specific error messages
+        if (e.toString().contains('email_address_invalid')) {
+          errorMessage = 'Invalid email format. Please use a valid email address.';
+        } else if (e.toString().contains('email_address_not_authorized')) {
+          errorMessage = 'Email address not authorized. Please use a different email.';
+        } else if (e.toString().contains('weak_password')) {
+          errorMessage = 'Password is too weak. Please use a stronger password.';
+        } else if (e.toString().contains('email_already_exists')) {
+          errorMessage = 'An account with this email already exists. Please login instead.';
+        } else if (e.toString().contains('signup_disabled')) {
+          errorMessage = 'Registration is currently disabled. Please try again later.';
+        } else {
+          errorMessage = 'Registration failed: ${e.toString()}';
+        }
+      }
 
-    if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration failed. Please try again.'),
-          backgroundColor: AppColors.emergencyRed,
-        ),
-      );
+      if (mounted) {
+        if (success) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Account created successfully! You can now login.'),
+              backgroundColor: AppColors.successGreen,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          
+          // Navigate back to login screen
+          Navigator.of(context).pop();
+        } else {
+          // Show specific error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage ?? 'Registration failed. Please try again.'),
+              backgroundColor: AppColors.emergencyRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _register(),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Unexpected error in _register: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('An unexpected error occurred during registration.'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
     }
   }
 
@@ -118,20 +190,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
             color: AppColors.textPrimary,
           ),
         ),
-        const Spacer(),
-        Icon(
-          Icons.favorite,
-          color: AppColors.primaryGreen,
-          size: ResponsiveHelper.getIconSize(context, 32),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          'NGO Connect',
-          style: AppTextStyles.heading3.copyWith(
-            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 24),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.favorite,
+                color: AppColors.primaryGreen,
+                size: ResponsiveHelper.getIconSize(context, 32),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'NGO Connect',
+                  style: AppTextStyles.heading3.copyWith(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 20),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
-        const Spacer(),
         const SizedBox(width: 48), // Balance the back button
       ],
     );
@@ -449,9 +530,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             onPressed: authProvider.isLoading ? null : _register,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
-              foregroundColor: Colors.black,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
               ),
               elevation: 0,
             ),
@@ -466,7 +547,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   )
                 : Text(
                     'Create Account',
-                    style: AppTextStyles.buttonLarge,
+                    style: AppTextStyles.buttonLarge.copyWith(color: Colors.white),
                   ),
           ),
         );

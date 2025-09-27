@@ -34,17 +34,47 @@ class ResponsiveTestHelper {
       debugPrint('=== Testing $deviceName (${size.width}x${size.height}) ===');
       
       // Test breakpoint detection
-      final breakpoint = ResponsiveHelper.getBreakpoint(size.width);
+      final isSmallPhone = size.width < 360;
+      final isStandardPhone = size.width >= 360 && size.width < 600;
+      final isLargePhone = size.width >= 600 && size.width < 900;
+      final isTablet = size.width >= 900;
+      
+      String breakpoint = 'Unknown';
+      if (isSmallPhone) {
+        breakpoint = 'Small Phone';
+      } else if (isStandardPhone) {
+        breakpoint = 'Standard Phone';
+      } else if (isLargePhone) {
+        breakpoint = 'Large Phone';
+      } else if (isTablet) {
+        breakpoint = 'Tablet';
+      }
+      
       debugPrint('Breakpoint: $breakpoint');
       
       // Test responsive values
-      final padding = ResponsiveHelper.getResponsivePadding(size.width);
-      debugPrint('Padding: $padding');
+      double padding = 20;
+      if (size.width > 600) {
+        padding = 40;
+      } else if (size.width > 360) {
+        padding = 24;
+      }
+      debugPrint('Horizontal Padding: $padding');
       
-      final fontSize = ResponsiveHelper.getResponsiveFontSize(null, 16, screenWidth: size.width);
+      double fontSize = 16;
+      if (size.width > 600) {
+        fontSize = 16 * 1.1;
+      } else if (size.width < 360) {
+        fontSize = 16 * 0.9;
+      }
       debugPrint('Font Size (base 16): $fontSize');
       
-      final buttonHeight = ResponsiveHelper.getButtonHeight(null, screenWidth: size.width);
+      double buttonHeight = 48;
+      if (size.width >= 900) {
+        buttonHeight = 56;
+      } else if (size.width < 360) {
+        buttonHeight = 44;
+      }
       debugPrint('Button Height: $buttonHeight');
       
       debugPrint('');
@@ -105,7 +135,16 @@ class ResponsiveTestHelper {
     return Builder(
       builder: (context) {
         final size = MediaQuery.of(context).size;
-        final breakpoint = ResponsiveHelper.getBreakpoint(size.width);
+        String breakpoint = 'Unknown';
+        if (size.width < 360) {
+          breakpoint = 'Small Phone';
+        } else if (size.width >= 360 && size.width < 600) {
+          breakpoint = 'Standard Phone';
+        } else if (size.width >= 600 && size.width < 900) {
+          breakpoint = 'Large Phone';
+        } else if (size.width >= 900) {
+          breakpoint = 'Tablet';
+        }
         
         return Card(
           child: Padding(
@@ -116,9 +155,10 @@ class ResponsiveTestHelper {
                 Text('Screen Width: ${size.width.toStringAsFixed(0)}px'),
                 Text('Screen Height: ${size.height.toStringAsFixed(0)}px'),
                 Text('Breakpoint: $breakpoint'),
-                Text('Is Mobile: ${ResponsiveHelper.isMobile(context)}'),
+                Text('Is Small Phone: ${ResponsiveHelper.isSmallPhone(context)}'),
+                Text('Is Standard Phone: ${ResponsiveHelper.isStandardPhone(context)}'),
+                Text('Is Large Phone: ${ResponsiveHelper.isLargePhone(context)}'),
                 Text('Is Tablet: ${ResponsiveHelper.isTablet(context)}'),
-                Text('Is Desktop: ${ResponsiveHelper.isDesktop(context)}'),
               ],
             ),
           ),
@@ -177,7 +217,8 @@ class ResponsiveTestHelper {
   static Widget _buildSpacingTest() {
     return Builder(
       builder: (context) {
-        final padding = ResponsiveHelper.getResponsivePadding(MediaQuery.of(context).size.width);
+        final paddingEdgeInsets = ResponsiveHelper.getHorizontalPadding(context);
+        final padding = paddingEdgeInsets.horizontal / 2; // Get the horizontal padding value
         
         return Card(
           child: Padding(

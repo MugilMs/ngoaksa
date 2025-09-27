@@ -82,19 +82,23 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 40),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(
                   Icons.favorite,
                   color: Color(0xFF38E07B),
-                  size: 48,
+                  size: 32,
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'NGO Connect',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: const Text(
+                    'NGO Connect',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],

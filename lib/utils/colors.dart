@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary Colors - Professional Blue Scheme
-  static const Color primaryBlue = Color(0xFF2563EB);
-  static const Color primaryDark = Color(0xFF1E40AF);
-  static const Color primaryLight = Color(0xFF3B82F6);
-  static const Color accent = Color(0xFF8B5CF6);
+  // Primary Colors - Green Scheme
+  static const Color primaryGreen = Color.fromRGBO(113, 221, 133, 1.0); // #71DD85
+  static const Color primaryDark = Color(0xFF52B366);
+  static const Color primaryLight = Color(0xFFB2F7C1);
+  static const Color accent = Color(0xFF71DD85);
   
   // Background Colors
   static const Color backgroundColor = Color(0xFFFFFFFF); // Card and surface colors
@@ -53,8 +53,8 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF2563EB),
-      Color(0xFF3B82F6),
+      Color(0xFF71DD85),
+      Color(0xFFB2F7C1),
     ],
   );
   
@@ -62,25 +62,25 @@ class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF8B5CF6),
-      Color(0xFFA855F7),
+      Color(0xFF71DD85),
+      Color(0xFF52B366),
     ],
   );
   
   // Opacity Variants
-  static Color get primaryBlueOpacity10 => primaryBlue.withOpacity(0.1);
-  static Color get primaryBlueOpacity20 => primaryBlue.withOpacity(0.2);
-  static Color get primaryBlueOpacity50 => primaryBlue.withOpacity(0.5);
+  static Color get primaryGreenOpacity10 => primaryGreen.withOpacity(0.1);
+  static Color get primaryGreenOpacity20 => primaryGreen.withOpacity(0.2);
+  static Color get primaryGreenOpacity50 => primaryGreen.withOpacity(0.5);
   
   static Color get textPrimaryOpacity60 => textPrimary.withOpacity(0.6);
   static Color get textPrimaryOpacity80 => textPrimary.withOpacity(0.8);
   
   // Legacy compatibility (will be removed)
-  static Color get primaryGreen => primaryBlue;
   static Color get secondaryGreen => primaryLight;
   static Color get darkGreen => primaryDark;
-  static Color get primaryGreenOpacity10 => primaryBlueOpacity10;
-  static Color get primaryGreenOpacity20 => primaryBlueOpacity20;
-  static Color get primaryGreenOpacity50 => primaryBlueOpacity50;
+  static Color get primaryBlue => primaryGreen; // For backward compatibility
+  static Color get primaryBlueOpacity10 => primaryGreenOpacity10;
+  static Color get primaryBlueOpacity20 => primaryGreenOpacity20;
+  static Color get primaryBlueOpacity50 => primaryGreenOpacity50;
   static Color get warningYellow => warningOrange;
 }

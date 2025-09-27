@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/opportunity_provider.dart';
+import '../../models/opportunity.dart';
 import '../../widgets/opportunity_card.dart';
 import '../../widgets/stat_card.dart';
 import '../../utils/colors.dart';
@@ -20,8 +21,24 @@ class HomeScreen extends StatelessWidget {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
-            await Provider.of<OpportunityProvider>(context, listen: false)
-                .refreshOpportunities();
+            try {
+              await Provider.of<OpportunityProvider>(context, listen: false)
+                  .refreshOpportunities();
+            } catch (e) {
+              print('Error refreshing opportunities: $e');
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Unable to refresh data. Please try again.'),
+                    backgroundColor: AppColors.emergencyRed,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                );
+              }
+            }
           },
           color: AppColors.primaryGreen,
           child: SingleChildScrollView(

@@ -1,6 +1,8 @@
 class ChatConversation {
   final String id;
   final String organization;
+  final String organizationName;
+  final String organizationAvatar;
   final String lastMessage;
   final DateTime timestamp;
   final int unreadCount;
@@ -10,12 +12,15 @@ class ChatConversation {
   ChatConversation({
     required this.id,
     required this.organization,
+    String? organizationName,
+    String? organizationAvatar,
     required this.lastMessage,
     required this.timestamp,
     this.unreadCount = 0,
     this.avatarUrl,
     this.messages = const [],
-  });
+  }) : organizationName = organizationName ?? organization,
+       organizationAvatar = organizationAvatar ?? avatarUrl ?? '';
 
   factory ChatConversation.fromJson(Map<String, dynamic> json) {
     return ChatConversation(
@@ -67,6 +72,7 @@ class Message {
   final String content;
   final DateTime timestamp;
   final MessageSender sender;
+  final String senderId;
   final MessageType type;
   final bool isRead;
 
@@ -76,9 +82,10 @@ class Message {
     required this.content,
     required this.timestamp,
     required this.sender,
+    String? senderId,
     this.type = MessageType.text,
     this.isRead = false,
-  });
+  }) : senderId = senderId ?? id;
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
@@ -89,6 +96,7 @@ class Message {
       sender: MessageSender.values.firstWhere(
         (e) => e.toString().split('.').last == json['sender'],
       ),
+      senderId: json['sender_id'],
       type: MessageType.values.firstWhere(
         (e) => e.toString().split('.').last == json['type'],
       ),
@@ -103,6 +111,7 @@ class Message {
       'content': content,
       'timestamp': timestamp.toIso8601String(),
       'sender': sender.toString().split('.').last,
+      'sender_id': senderId,
       'type': type.toString().split('.').last,
       'is_read': isRead,
     };

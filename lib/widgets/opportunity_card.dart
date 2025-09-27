@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../models/opportunity.dart';
 import '../utils/colors.dart';
 import '../utils/text_styles.dart';
@@ -47,27 +46,14 @@ class OpportunityCard extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          child: CachedNetworkImage(
-            imageUrl: opportunity.imageUrl,
+          child: Container(
             height: ResponsiveHelper.getOpportunityCardHeight(context) * 0.6,
             width: double.infinity,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => Container(
-              color: AppColors.inputBackground,
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primaryGreen,
-                  strokeWidth: 2,
-                ),
-              ),
-            ),
-            errorWidget: (context, url, error) => Container(
-              color: AppColors.inputBackground,
-              child: const Icon(
-                Icons.image_not_supported,
-                color: AppColors.textSecondary,
-                size: 48,
-              ),
+            color: AppColors.inputBackground,
+            child: const Icon(
+              Icons.image,
+              color: AppColors.textTertiary,
+              size: 48,
             ),
           ),
         ),

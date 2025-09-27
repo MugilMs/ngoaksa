@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/simple_auth_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../utils/colors.dart';
 import '../../utils/text_styles.dart';
 import '../../utils/responsive_helper.dart';
-import 'register_screen.dart';
+import '../auth/register_screen.dart';
+import '../../widgets/exception_card.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,45 +28,175 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithEmail() async {
-    if (!_formKey.currentState!.validate()) return;
+    try {
+      if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = Provider.of<SimpleAuthProvider>(context, listen: false);
-    final success = await authProvider.signIn(
-      _emailController.text.trim(),
-      _passwordController.text,
-    );
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      bool success = false;
+      String? errorMessage;
+      
+      try {
+        success = await authProvider.signIn(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+      } catch (e) {
+        print('Sign in error: $e');
+        success = false;
+        
+        // Extract specific error messages
+        if (e.toString().contains('invalid_credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials.';
+        } else if (e.toString().contains('email_not_confirmed')) {
+          errorMessage = 'Please check your email and click the confirmation link before logging in.';
+        } else if (e.toString().contains('too_many_requests')) {
+          errorMessage = 'Too many login attempts. Please wait a few minutes and try again.';
+        } else if (e.toString().contains('network')) {
+          errorMessage = 'Network error. Please check your internet connection.';
+        } else {
+          errorMessage = 'Login failed: ${e.toString()}';
+        }
+      }
 
-    if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid email or password'),
-          backgroundColor: AppColors.emergencyRed,
-        ),
-      );
+      if (mounted) {
+        if (success) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Welcome back! Login successful.'),
+              backgroundColor: AppColors.successGreen,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          
+          // Navigate back to main screen (user is now logged in)
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } else {
+          // Show specific error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage ?? 'Login failed. Please try again.'),
+              backgroundColor: AppColors.emergencyRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: Colors.white,
+                onPressed: () => _signInWithEmail(),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Unexpected error in _signInWithEmail: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Unexpected error: ${e.toString()}'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _signInWithEmail(),
+            ),
+          ),
+        );
+      }
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    final authProvider = Provider.of<SimpleAuthProvider>(context, listen: false);
-    final success = await authProvider.signInWithGoogle();
+    try {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      
+      bool success = false;
+      try {
+        success = await authProvider.signInWithGoogle();
+      } catch (e) {
+        print('Google sign in error: $e');
+        success = false;
+      }
 
-    if (!success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Google sign in failed'),
-          backgroundColor: AppColors.emergencyRed,
-        ),
-      );
+      if (mounted) {
+        if (success) {
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Welcome! Google sign in successful.'),
+              backgroundColor: AppColors.successGreen,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          
+          // Navigate back to main screen (user is now logged in)
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Google sign in failed. Please try again.'),
+              backgroundColor: AppColors.emergencyRed,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Unexpected error in _signInWithGoogle: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('An unexpected error occurred during Google sign in.'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
     }
   }
 
   void _navigateToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const RegisterScreen(),
-      ),
-    );
+    try {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RegisterScreen(),
+        ),
+      );
+    } catch (e) {
+      print('Navigation error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Unable to navigate to registration. Please try again.'),
+            backgroundColor: AppColors.emergencyRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -111,20 +242,38 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildHeader(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.favorite,
-          color: AppColors.primaryGreen,
-          size: ResponsiveHelper.getIconSize(context, 48),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'NGO Connect',
-          style: AppTextStyles.heading1.copyWith(
-            fontSize: ResponsiveHelper.getResponsiveFontSize(context, 32),
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: AppColors.textPrimary,
           ),
         ),
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.favorite,
+                color: AppColors.primaryGreen,
+                size: ResponsiveHelper.getIconSize(context, 32),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  'NGO Connect',
+                  style: AppTextStyles.heading1.copyWith(
+                    fontSize: ResponsiveHelper.getResponsiveFontSize(context, 24),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 48), // Balance the back button
       ],
     );
   }
@@ -249,9 +398,9 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: authProvider.isLoading ? null : _signInWithEmail,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
-              foregroundColor: Colors.black,
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(12),
               ),
               elevation: 0,
             ),
@@ -260,23 +409,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                      color: Colors.black,
+                      color: Colors.white,
                       strokeWidth: 2,
                     ),
                   )
-                : GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterScreen(),
-                        ),
-                      );
-                    },
-                    child: Text(
-                      'Login',
-                      style: AppTextStyles.buttonLarge,
-                    ),
+                : Text(
+                    'Login',
+                    style: AppTextStyles.buttonLarge.copyWith(color: Colors.white),
                   ),
           ),
         );
@@ -296,7 +435,7 @@ class _LoginScreenState extends State<LoginScreen> {
             width: 1,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         child: Text(

@@ -16,13 +16,14 @@ class SimpleOpportunityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final responsive = ResponsiveHelper(context);
+    final screenWidth = ResponsiveHelper.getScreenWidth(context);
+    final screenHeight = ResponsiveHelper.getScreenHeight(context);
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: responsive.screenWidth * 0.8,
-        margin: EdgeInsets.only(right: responsive.wp(4)),
+        width: screenWidth * 0.8,
+        margin: EdgeInsets.only(right: screenWidth * 0.04),
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(16),
@@ -39,7 +40,7 @@ class SimpleOpportunityCard extends StatelessWidget {
           children: [
             // Image placeholder
             Container(
-              height: responsive.hp(20),
+              height: screenHeight * 0.2,
               decoration: BoxDecoration(
                 color: AppColors.primaryGreen.withOpacity(0.1),
                 borderRadius: const BorderRadius.vertical(
@@ -49,14 +50,14 @@ class SimpleOpportunityCard extends StatelessWidget {
               child: Center(
                 child: Icon(
                   Icons.volunteer_activism,
-                  size: responsive.wp(12),
+                  size: screenWidth * 0.12,
                   color: AppColors.primaryGreen,
                 ),
               ),
             ),
             
             Padding(
-              padding: EdgeInsets.all(responsive.wp(4)),
+              padding: EdgeInsets.all(screenWidth * 0.04),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -68,7 +69,7 @@ class SimpleOpportunityCard extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: responsive.hp(1)),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Text(
                     opportunity.organization,
@@ -76,16 +77,16 @@ class SimpleOpportunityCard extends StatelessWidget {
                       color: AppColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: responsive.hp(1)),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Row(
                     children: [
                       Icon(
                         Icons.location_on_outlined,
-                        size: responsive.wp(4),
+                        size: screenWidth * 0.04,
                         color: AppColors.textSecondary,
                       ),
-                      SizedBox(width: responsive.wp(1)),
+                      SizedBox(width: screenWidth * 0.01),
                       Expanded(
                         child: Text(
                           opportunity.location,
@@ -97,18 +98,18 @@ class SimpleOpportunityCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: responsive.hp(1)),
+                  SizedBox(height: screenHeight * 0.01),
                   
                   Row(
                     children: [
                       Icon(
                         Icons.access_time,
-                        size: responsive.wp(4),
+                        size: screenWidth * 0.04,
                         color: AppColors.textSecondary,
                       ),
-                      SizedBox(width: responsive.wp(1)),
+                      SizedBox(width: screenWidth * 0.01),
                       Text(
-                        '${opportunity.duration} hours',
+                        opportunity.time ?? 'Flexible',
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.textSecondary,
                         ),
@@ -116,15 +117,15 @@ class SimpleOpportunityCard extends StatelessWidget {
                       const Spacer(),
                       Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: responsive.wp(2),
-                          vertical: responsive.hp(0.5),
+                          horizontal: screenWidth * 0.02,
+                          vertical: screenHeight * 0.005,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryGreen.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          opportunity.category,
+                          opportunity.type.displayName,
                           style: AppTextStyles.caption.copyWith(
                             color: AppColors.primaryGreen,
                             fontWeight: FontWeight.w600,

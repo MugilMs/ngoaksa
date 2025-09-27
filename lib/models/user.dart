@@ -4,6 +4,8 @@ class User {
   final String fullName;
   final String? profileImageUrl;
   final UserRole role;
+  final String? bio;
+  final List<String>? skills;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -13,6 +15,8 @@ class User {
     required this.fullName,
     this.profileImageUrl,
     required this.role,
+    this.bio,
+    this.skills,
     required this.createdAt,
     this.updatedAt,
   });
@@ -26,6 +30,10 @@ class User {
       role: UserRole.values.firstWhere(
         (e) => e.toString().split('.').last == json['role'],
       ),
+      bio: json['bio'],
+      skills: json['skills'] != null 
+          ? List<String>.from(json['skills']) 
+          : null,
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: json['updated_at'] != null 
           ? DateTime.parse(json['updated_at']) 
@@ -40,6 +48,8 @@ class User {
       'full_name': fullName,
       'profile_image_url': profileImageUrl,
       'role': role.toString().split('.').last,
+      'bio': bio,
+      'skills': skills,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -51,6 +61,8 @@ class User {
     String? fullName,
     String? profileImageUrl,
     UserRole? role,
+    String? bio,
+    List<String>? skills,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -60,6 +72,8 @@ class User {
       fullName: fullName ?? this.fullName,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       role: role ?? this.role,
+      bio: bio ?? this.bio,
+      skills: skills ?? this.skills,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

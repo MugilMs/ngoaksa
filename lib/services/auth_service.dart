@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
-  static final supabase = Supabase.instance.client;
+  static final SupabaseClient supabase = Supabase.instance.client;
   static final GoogleSignIn googleSignIn = GoogleSignIn(
     scopes: ['email', 'profile'],
   );
